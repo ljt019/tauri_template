@@ -2,6 +2,14 @@
 
 A robust and feature-rich template for building desktop applications with Tauri, React, Vite, TypeScript, Tailwind CSS, React Query, and ShadCN.
 
+[![Tauri](https://img.shields.io/badge/tauri-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
+[![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![React Query](https://img.shields.io/badge/-React%20Query-FF4154?style=for-the-badge&logo=react%20query&logoColor=white)](https://tanstack.com/query/latest/)
+[![ShadCN](https://img.shields.io/badge/shadcn-black?style=for-the-badge&logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
+
 ## Table of Contents
 
 - [Features](#features)
@@ -10,8 +18,6 @@ A robust and feature-rich template for building desktop applications with Tauri,
 - [Available Scripts](#available-scripts)
 - [Project Structure](#project-structure)
 - [Customization](#customization)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
@@ -174,22 +180,3 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   </React.StrictMode>
 );
 ```
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the Repository
-2. Create a New Branch
-   ```bash
-   git checkout -b feature/YourFeature
-   ```
-3. Commit Your Changes
-   ```bash
-   git commit -m "Add your feature"
-   ```
-4. Push to the Branch
-   ```bash
-   git push origin feature/YourFeature
-   ```
-5. Open a Pull Request
