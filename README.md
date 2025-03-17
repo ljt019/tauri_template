@@ -306,7 +306,7 @@ function MyComponent() {
 
 ### Tauri Integration
 
-This template includes Tauri V2 with the opener plugin already set up. The Rust backend is configured to handle commands from the frontend:
+This template includes Tauri V2. The Rust backend is configured to handle commands from the frontend:
 
 ```rust
 // src-tauri/src/lib.rs
