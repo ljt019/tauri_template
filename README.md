@@ -83,24 +83,36 @@ In the project directory, you can run:
 ```
 tauri_template/
 ├── src/
-│   ├── components/
-│   │   └── ui/
-│   │       └── Button.tsx
-│   ├── screens/
-│   │   └── Index.tsx
-│   ├── routes/
-│   │   └── index.tsx
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-├── tauri/
-│   └── ... (Tauri configuration and source files)
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── tailwind.config.js
-├── postcss.config.js
-└── README.md
+│   ├── assets/         # Static assets
+│   ├── components/     # Reusable UI components
+│   │   ├── theme-provider.tsx  # Theme context provider
+│   │   └── ui/         # ShadCN UI components
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── separator.tsx
+│   │       └── tabs.tsx
+│   ├── constants/      # Application constants
+│   │   └── query.ts    # TanStack Query configuration
+│   ├── lib/            # Utility functions
+│   │   └── utils.ts    # Common utility functions
+│   ├── screens/        # Application screens/pages
+│   │   ├── about.tsx   # About page with counter example
+│   │   ├── index.tsx   # Home page
+│   │   └── root.tsx    # Root layout and route configuration
+│   ├── main.tsx        # Application entry point
+│   └── vite-env.d.ts   # Vite type declarations
+├── src-tauri/          # Tauri backend (Rust)
+│   ├── src/            # Rust source code
+│   │   ├── lib.rs      # Tauri command handlers
+│   │   └── main.rs     # Rust entry point
+│   ├── Cargo.toml      # Rust dependencies
+│   └── tauri.conf.json # Tauri configuration
+├── public/             # Public static files
+├── index.html          # HTML entry point
+├── package.json        # NPM dependencies
+├── tsconfig.json       # TypeScript configuration
+├── vite.config.ts      # Vite configuration
+└── components.json     # ShadCN components configuration
 ```
 
 ## Customization
@@ -110,104 +122,217 @@ tauri_template/
 1. Create a New Screen
 
    ```tsx
-   // src/screens/About.tsx
-   import React from "react";
+   // src/screens/NewPage.tsx
+   import { createRoute } from "@tanstack/react-router";
+   import { rootRoute } from "@/screens/root";
 
-   export function About() {
-     return <div className="p-4">About Page</div>;
+   export const newPageRoute = createRoute({
+     getParentRoute: () => rootRoute,
+     path: "/new-page",
+     component: NewPage,
+   });
+
+   function NewPage() {
+     return <div className="p-4">New Page Content</div>;
    }
    ```
 
-2. Update Routing
+2. Update Root Route Configuration
 
    ```tsx
-   // src/routes/index.tsx
-   import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
-   import { Index } from '../screens/Index'
-   import { About } from '../screens/About'
+   // src/screens/root.tsx
+   import { Outlet, createRootRoute } from "@tanstack/react-router";
+   import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+   import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-   // Create a root route
-   const rootRoute = createRootRoute({
-     component: () => <Outlet />,
-   })
+   import { indexRoute } from "@/screens/index";
+   import { aboutRoute } from "@/screens/about";
+   import { newPageRoute } from "@/screens/NewPage"; // Import your new route
 
-   // Create your routes
-   const indexRoute = createRoute({
-     getParentRoute: () => rootRoute,
-     path: '/',
-     component: Index,
-   })
+   export const rootRoute = createRootRoute({
+     component: () => (
+       <>
+         <Outlet />
+         <ReactQueryDevtools />
+         <TanStackRouterDevtools />
+       </>
+     ),
+   });
 
-   const aboutRoute = createRoute({
-     getParentRoute: () => rootRoute,
-     path: '/about',
-     component: About,
-   })
+   // Add your new route to the route tree
+   export const routeTree = rootRoute.addChildren([
+     indexRoute, 
+     aboutRoute,
+     newPageRoute // Add the new route here
+   ]);
+   ```
 
-   // Create and export your router
-   const routeTree = rootRoute.addChildren([indexRoute, aboutRoute])
-   export const router = createRouter({ routeTree })
+3. The routing is automatically set up in main.tsx:
 
-   // Register your router for maximum type safety
-   declare module '@tanstack/react-router' {
+   ```tsx
+   // src/main.tsx (already configured)
+   import { RouterProvider, createRouter } from "@tanstack/react-router";
+   import { routeTree } from "@/screens/root";
+
+   const router = createRouter({ routeTree });
+
+   // Register the router for maximum type safety
+   declare module "@tanstack/react-router" {
      interface Register {
-       router: typeof router
+       router: typeof router;
      }
    }
-   ```
-
-3. Update App.tsx
-
-   ```tsx
-   // src/App.tsx
-   import { RouterProvider } from '@tanstack/react-router'
-   import { router } from './routes'
-
-   function App() {
-     return <RouterProvider router={router} />
-   }
-
-   export default App
+   
+   // ... rest of main.tsx
    ```
 
 ### Styling with Tailwind CSS V4
 
-Customize the Tailwind V4 configuration in `tailwind.config.js` to extend themes, add plugins, or modify existing styles.
+This template uses Tailwind CSS V4 with the Vite plugin. The configuration is managed through the `@tailwindcss/vite` plugin in `vite.config.ts`:
 
-```javascript
-// tailwind.config.js
-module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {
-      // Customizations here
-    },
-  },
+```typescript
+// vite.config.ts (excerpt)
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig(async () => ({
   plugins: [
-    // Add plugins here
+    react(),
+    tailwindcss(),
+    // ... other plugins
   ],
+  // ... rest of config
+}));
+```
+
+The theme also includes a dark/light mode theme provider (`/src/components/theme-provider.tsx`) that is configured in `main.tsx`:
+
+```tsx
+// main.tsx (excerpt)
+<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+  <RouterProvider router={router} />
+</ThemeProvider>
+```
+
+You can use the `useTheme` hook to access and modify the current theme in your components:
+
+```tsx
+import { useTheme } from "@/components/theme-provider";
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  
+  return (
+    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+      Toggle theme
+    </button>
+  );
 }
 ```
 
 ### Using TanStack Query
 
-Set up a QueryClient and provide it to your application.
+This template comes with TanStack Query already set up for data fetching. The QueryClient is configured in a dedicated constants file to maintain separation of concerns:
 
 ```tsx
-// src/main.tsx
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import "../index.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/query";
+// src/constants/query.ts
+import { QueryClient } from "@tanstack/react-query";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
+export const queryKeys = {
+  exampleKey: ["example-key"] as const,
+  exampleKey2: () => [...queryKeys.exampleKey, "example-key-2"],
+};
+```
+
+And it's provided to the app in `main.tsx`:
+
+```tsx
+// src/main.tsx (excerpt)
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/constants/query";
+
+// ...
+
+root.render(
+  <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      {/* rest of application */}
     </QueryClientProvider>
-  </React.StrictMode>
+  </StrictMode>
 );
+```
+
+The application also includes the TanStack Query DevTools in development mode, which are rendered in the root component:
+
+```tsx
+// src/screens/root.tsx (excerpt)
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+export const rootRoute = createRootRoute({
+  component: () => (
+    <>
+      <Outlet />
+      <ReactQueryDevtools />
+      {/* ...other components */}
+    </>
+  ),
+});
+```
+
+#### Example Query Usage
+
+```tsx
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/constants/query";
+
+// Example API call using Tauri API
+import { invoke } from "@tauri-apps/api";
+
+function MyComponent() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.exampleKey,
+    queryFn: async () => {
+      return await invoke("greet", { name: "User" });
+    },
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {String(error)}</div>;
+
+  return <div>{data}</div>;
+}
+```
+
+### Tauri Integration
+
+This template includes Tauri V2 with the opener plugin already set up. The Rust backend is configured to handle commands from the frontend:
+
+```rust
+// src-tauri/src/lib.rs
+#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![greet])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+To call Rust functions from your React components:
+
+```tsx
+import { invoke } from "@tauri-apps/api";
+
+async function callRustFunction() {
+  // Call the "greet" command defined in Rust
+  const response = await invoke("greet", { name: "World" });
+  console.log(response); // "Hello, World! You've been greeted from Rust!"
+}
 ```
