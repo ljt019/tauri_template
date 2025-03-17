@@ -1,13 +1,13 @@
 # Tauri React Template
 
-A robust and feature-rich template for building desktop applications with Tauri, React, Vite, TypeScript, Tailwind CSS, React Query, and ShadCN.
+A robust and feature-rich template for building desktop applications with Tauri V2, React, Vite, TypeScript, Tailwind CSS V4, TanStack Query, TanStack Router, and ShadCN.
 
-[![Tauri](https://img.shields.io/badge/tauri-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
+[![Tauri V2](https://img.shields.io/badge/tauri%20v2-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
 [![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
-[![React Query](https://img.shields.io/badge/-React%20Query-FF4154?style=for-the-badge&logo=react%20query&logoColor=white)](https://tanstack.com/query/latest/)
-[![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![TanStack Query](https://img.shields.io/badge/-TanStack%20Query-FF4154?style=for-the-badge&logo=react%20query&logoColor=white)](https://tanstack.com/query/latest/)
+[![TailwindCSS V4](https://img.shields.io/badge/tailwindcss%20v4-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![ShadCN](https://img.shields.io/badge/shadcn-black?style=for-the-badge&logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
 
 ## Table of Contents
@@ -21,14 +21,14 @@ A robust and feature-rich template for building desktop applications with Tauri,
 
 ## Features
 
-- Tauri Integration: Build secure and lightweight desktop applications.
+- Tauri V2 Integration: Build secure and lightweight desktop applications with the latest Tauri version.
 - React 18: Modern and efficient UI library.
 - Vite: Fast and optimized development build tool.
 - TypeScript: Strongly typed JavaScript for better developer experience.
-- Tailwind CSS: Utility-first CSS framework for rapid UI development.
-- React Query: Data fetching and state management.
+- Tailwind CSS V4: The latest version of the utility-first CSS framework for rapid UI development.
+- TanStack Query: Data fetching and state management.
+- TanStack Router: Type-safe routing with first-class search param support.
 - ShadCN UI: Accessible and customizable UI components.
-- Routing: Client-side routing with React Router DOM.
 - Icons: Rich icon library with Radix UI and Lucide React.
 - State Management: Simple and scalable state management with React hooks.
 - Build Scripts: Streamlined scripts for development and production builds.
@@ -88,6 +88,8 @@ tauri_template/
 │   │       └── Button.tsx
 │   ├── screens/
 │   │   └── Index.tsx
+│   ├── routes/
+│   │   └── index.tsx
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── index.css
@@ -103,7 +105,7 @@ tauri_template/
 
 ## Customization
 
-### Adding New Routes
+### Adding New Routes with TanStack Router
 
 1. Create a New Screen
 
@@ -119,28 +121,58 @@ tauri_template/
 2. Update Routing
 
    ```tsx
-   // src/App.tsx
-   import { HashRouter as Router, Routes, Route } from "react-router-dom";
-   import { Index } from "./screens/index";
-   import { About } from "./screens/About";
+   // src/routes/index.tsx
+   import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
+   import { Index } from '../screens/Index'
+   import { About } from '../screens/About'
 
-   function App() {
-     return (
-       <Router>
-         <Routes>
-           <Route path="/" element={<Index />} />
-           <Route path="/about" element={<About />} />
-         </Routes>
-       </Router>
-     );
+   // Create a root route
+   const rootRoute = createRootRoute({
+     component: () => <Outlet />,
+   })
+
+   // Create your routes
+   const indexRoute = createRoute({
+     getParentRoute: () => rootRoute,
+     path: '/',
+     component: Index,
+   })
+
+   const aboutRoute = createRoute({
+     getParentRoute: () => rootRoute,
+     path: '/about',
+     component: About,
+   })
+
+   // Create and export your router
+   const routeTree = rootRoute.addChildren([indexRoute, aboutRoute])
+   export const router = createRouter({ routeTree })
+
+   // Register your router for maximum type safety
+   declare module '@tanstack/react-router' {
+     interface Register {
+       router: typeof router
+     }
    }
-
-   export default App;
    ```
 
-### Styling with Tailwind CSS
+3. Update App.tsx
 
-Customize the Tailwind configuration in `tailwind.config.js` to extend themes, add plugins, or modify existing styles.
+   ```tsx
+   // src/App.tsx
+   import { RouterProvider } from '@tanstack/react-router'
+   import { router } from './routes'
+
+   function App() {
+     return <RouterProvider router={router} />
+   }
+
+   export default App
+   ```
+
+### Styling with Tailwind CSS V4
+
+Customize the Tailwind V4 configuration in `tailwind.config.js` to extend themes, add plugins, or modify existing styles.
 
 ```javascript
 // tailwind.config.js
@@ -152,13 +184,12 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate"),
-    // Add other plugins here
+    // Add plugins here
   ],
-};
+}
 ```
 
-### Using React Query
+### Using TanStack Query
 
 Set up a QueryClient and provide it to your application.
 
@@ -168,7 +199,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "../index.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/query";
 
 const queryClient = new QueryClient();
 
